@@ -1,76 +1,73 @@
 <template>
-  <div class="post">
-    <div class="post__user">
-      <div class="post__user--image">
-        <img alt="user" src="../assets/images/user-placeholder.png" />
-      </div>
-      <div class="post__user--info">
-        <h3>Juan Rodriguez</h3>
-        <span>Hace 40 minutos</span>
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aperiam
-          consectetur delectus doloribus eos eum laudantium neque non, nostrum
-          voluptatum. Dolorum iusto laborum maiores necessitatibus qui.
-        </p>
-      </div>
-    </div>
-    <div class="post__counts">
-      <div class="post__counts--reacts">
-        <div><span>QW</span></div>
-        <div><span>AS</span></div>
-        <div><span>ZX</span></div>
-        <span class="post__counts--reacts-number">13</span>
-      </div>
-      <div class="post__counts--comments">3 {{ commentsCountTxt }}</div>
-    </div>
-    <div class="post__comments">
-      <div class="post__comments--image">
-        <img alt="user" src="../assets/images/user-placeholder.png" />
-      </div>
-      <div class="post__comments--info">
-        <div>
-          <h4>Juan Rodriguez</h4>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-          </p>
+  <div v-if="posts">
+    <div :key="post.detail.id" class="post" v-for="post in posts">
+      <div class="post__user" v-if="post.detail">
+        <div class="post__user--image">
+          <img alt="user" src="../assets/images/user-placeholder.png" />
         </div>
-        <span>Hace 40 minutos</span>
-      </div>
-      <div class="post__comments--image">
-        <img alt="user" src="../assets/images/user-placeholder.png" />
-      </div>
-      <div class="post__comments--info">
-        <div>
-          <h4>Juan Rodriguez</h4>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-          </p>
+        <div class="post__user--info">
+          <h3>{{ post.detail.user }}</h3>
+          <span>{{ post.detail.dateCreated | timePassed }}</span>
+          <p>{{ post.detail.message }}</p>
         </div>
-        <span>Hace 40 minutos</span>
-      </div>
-      <div class="post__comments--image">
-        <img alt="user" src="../assets/images/user-placeholder.png" />
-      </div>
-      <div class="post__comments--info">
-        <div>
-          <h4>Juan Rodriguez</h4>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-          </p>
+        <div class="post__user--actions">
+          <div @click="reactToPost(post.detail.id)">{{ reactTxt }}</div>
+          <div @click="showCommentInput(post.detail.id)">
+            {{ commentBtnTxt }}
+          </div>
         </div>
-        <span>Hace 40 minutos</span>
       </div>
-      <div class="post__comments--input">
+      <div class="post__counts">
+        <div class="post__counts--reacts">
+          <div :key="index" v-for="(react, index) in post.reactions">
+            <span>{{ react.user.charAt(0) }}</span>
+          </div>
+          <span class="post__counts--reacts-number">{{
+            post.reactions.length
+          }}</span>
+        </div>
+        <div class="post__counts--comments">
+          {{ post.comments.length }} {{ commentsCountTxt }}
+        </div>
+      </div>
+      <div
+        :key="comments.id"
+        class="post__comments"
+        v-for="comments in post.comments"
+      >
+        <div class="post__comments--image">
+          <img alt="user" src="../assets/images/user-placeholder.png" />
+        </div>
+        <div class="post__comments--info">
+          <div>
+            <h4>{{ comments.user }}</h4>
+            <p>
+              {{ comments.message }}
+            </p>
+          </div>
+          <span>{{ comments.dateCreated | timePassed }}</span>
+        </div>
+      </div>
+      <div
+        class="post__comments--input"
+        v-if="post.comments.length > 0 || post.detail.id === showInput"
+      >
         <label>
           <textarea
             :placeholder="inputPlaceholderTxt"
-            @blur="hideMobileButton"
-            @focus="showMobileButton"
+            @blur="hideButton"
+            @focus="showButton(post.detail.id)"
             rows="1"
+            v-model="inputValue"
           />
         </label>
-        <div class="post__comments--button" v-if="inTextArea">
-          <button>{{ commentBtnTxt }}</button>
+        <div
+          class="post__comments--button"
+          v-if="post.detail.id === inTextArea"
+        >
+          <button @click="sendComment(post.detail.id)">
+            {{ commentBtnTxt }}
+          </button>
         </div>
       </div>
     </div>
@@ -78,24 +75,118 @@
 </template>
 
 <script lang="ts">
+import { MessageData, PostModel } from "@/models/post.model";
 import Vue from "vue";
 
 export default Vue.extend({
   name: "Post",
+
+  created(): void {},
+
   data() {
     return {
+      postList: this.$store.state.posts,
       commentsCountTxt: "comentarios",
-      inTextArea: false,
+      inTextArea: "",
+      showInput: "",
+      inputValue: "",
       inputPlaceholderTxt: "Escribe un comentario",
-      commentBtnTxt: "Comentar"
+      commentBtnTxt: "Comentar",
+      reactTxt: "Reaccionar"
     };
   },
+
+  computed: {
+    posts(): PostModel {
+      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+      return this.postList.sort(
+        (
+          a: { detail: { dateCreated: number } },
+          b: { detail: { dateCreated: number } }
+        ) => b.detail.dateCreated - a.detail.dateCreated
+      );
+    }
+  },
+
+  filters: {
+    timePassed(startTime: Date) {
+      const endTime = new Date();
+      let timeDiff = endTime.getTime() - startTime.getTime();
+      timeDiff /= 1000;
+      const seconds = {
+        text: "segundos",
+        value: Math.round(timeDiff)
+      };
+      const minutes = {
+        text: "minutos",
+        value: Math.round(seconds.value / 60)
+      };
+      const hours = {
+        text: "horas",
+        value: Math.round(minutes.value / 60)
+      };
+      let time;
+      if (seconds.value <= 60) {
+        time = seconds;
+      } else if (minutes.value <= 60) {
+        time = minutes;
+      } else {
+        time = hours;
+      }
+      return `Hace ${time.value} ${time.text}`;
+    }
+  },
+
   methods: {
-    showMobileButton() {
-      return (this.inTextArea = true);
+    reactToPost(postId: string) {
+      const react = {
+        id: postId,
+        user: "Felipe"
+      };
+      const postIndex = this.postList.findIndex(
+        (post: { detail: { id: string } }) => post.detail.id === postId
+      );
+
+      const isNewReaction = this.postList[postIndex].reactions.find(
+        (reaction: any) => reaction.id === postId
+      );
+
+      if (!isNewReaction) {
+        this.postList[postIndex].reactions.push(react);
+      }
     },
-    hideMobileButton() {
-      return (this.inTextArea = false);
+
+    showCommentInput(postId: string) {
+      this.showInput = postId;
+    },
+
+    showButton(postId: string) {
+      return (this.inTextArea = postId);
+    },
+
+    hideButton() {
+      setTimeout(() => {
+        this.inTextArea = "";
+      }, 100);
+    },
+
+    sendComment(postId: string) {
+      const comment: MessageData = {
+        id:
+          "_" +
+          Math.random()
+            .toString(36)
+            .substr(2, 9),
+        user: "Juan",
+        message: this.inputValue,
+        dateCreated: new Date()
+      };
+
+      const postIndex = this.postList.findIndex(
+        (post: { detail: { id: string } }) => post.detail.id === postId
+      );
+      this.postList[postIndex].comments.push(comment);
+      this.inputValue = "";
     }
   }
 });
@@ -138,6 +229,17 @@ export default Vue.extend({
 
 .post__user--info span {
   font-size: $font-xs;
+}
+
+.post__user--actions {
+  grid-column: 2/3;
+  display: flex;
+}
+
+.post__user--actions div {
+  padding: 0 30px 18px 10px;
+  color: $primary-one;
+  cursor: pointer;
 }
 
 .post__counts {
@@ -233,8 +335,9 @@ p {
 .post__comments--input {
   grid-column: span 2/3;
   justify-content: center;
-  margin-top: 20px;
-  margin-bottom: 10px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  background-color: $gray-01;
 }
 
 .post__comments--input textarea {

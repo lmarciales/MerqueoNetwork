@@ -12,12 +12,15 @@
       </label>
     </div>
     <div class="publish__post--button" v-if="inTextArea">
-      <button @click="savePost">{{ publishBtnTxt }}</button>
+      <button @click="savePost" :disabled="postMsg.length <= 0">
+        {{ publishBtnTxt }}
+      </button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import { PostModel } from "@/models/post.model";
 import Vue from "vue";
 import { mapState } from "vuex";
 
@@ -26,6 +29,7 @@ export default Vue.extend({
 
   created(): void {
     this.toggleMobileButton();
+    this.cleanPostList();
   },
 
   data() {
@@ -43,12 +47,28 @@ export default Vue.extend({
 
   methods: {
     savePost() {
-      const post = {
-        id: "1",
-        msg: this.postMsg
+      const post: PostModel = {
+        detail: {
+          id:
+            "_" +
+            Math.random()
+              .toString(36)
+              .substr(2, 9),
+          user: "Juan",
+          message: this.postMsg,
+          dateCreated: new Date()
+        },
+        reactions: [],
+        comments: []
       };
 
       this.$store.commit("addPost", post);
+
+      this.postMsg = "";
+    },
+
+    cleanPostList() {
+      this.$store.commit("clearEmptyPosts");
     },
 
     toggleMobileButton() {
@@ -109,5 +129,13 @@ export default Vue.extend({
   border-radius: 2px;
   height: 30px;
   width: 100px;
+  cursor: pointer;
+}
+
+.publish__post--button button:disabled {
+  color: $primary-one;
+  font-weight: $bold;
+  background-color: $gray-03;
+  cursor: not-allowed;
 }
 </style>
