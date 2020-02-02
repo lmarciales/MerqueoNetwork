@@ -1,3 +1,4 @@
+import { PostModel } from "@/models/post.model";
 import Vue from "vue";
 import Vuex from "vuex";
 
@@ -10,6 +11,12 @@ export default new Vuex.Store({
   mutations: {
     addPost(state, post) {
       state.posts.push(post);
+    },
+
+    clearEmptyPosts(state) {
+      state.posts = state.posts.filter(
+        value => Object.keys(value).length !== 0
+      );
     }
   },
   actions: {},
