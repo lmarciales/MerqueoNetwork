@@ -4,10 +4,14 @@
     <section>
       <mn-publish-post></mn-publish-post>
     </section>
+    <section>
+      <mn-post></mn-post>
+    </section>
   </div>
 </template>
 
 <script>
+import MnPost from "@/components/MnPost.vue";
 import MnPublishPost from "@/components/MnPublishPost";
 import TheHeader from "@/components/TheHeader.vue";
 
@@ -15,7 +19,8 @@ export default {
   name: "home",
   components: {
     TheHeader,
-    MnPublishPost
+    MnPublishPost,
+    MnPost
   }
 };
 </script>
