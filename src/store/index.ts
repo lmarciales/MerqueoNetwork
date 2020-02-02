@@ -4,8 +4,14 @@ import Vuex from "vuex";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-  state: {},
-  mutations: {},
+  state: {
+    posts: [{}]
+  },
+  mutations: {
+    addPost(state, post) {
+      state.posts.push(post);
+    }
+  },
   actions: {},
   modules: {}
 });

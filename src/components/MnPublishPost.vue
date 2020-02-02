@@ -7,39 +7,60 @@
           @blur="hideMobileButton"
           @focus="showMobileButton"
           rows="1"
+          v-model="postMsg"
         />
       </label>
     </div>
     <div class="publish__post--button" v-if="inTextArea">
-      <button>{{ publishBtnTxt }}</button>
+      <button @click="savePost">{{ publishBtnTxt }}</button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import { mapState } from "vuex";
 
 export default Vue.extend({
   name: "PublishPost",
+
   created(): void {
     this.toggleMobileButton();
   },
+
   data() {
     return {
       inputPlaceholderTxt: "Escribe aquí tu estado",
       inTextArea: true,
-      publishBtnTxt: "Publicar"
+      publishBtnTxt: "Publicar",
+      postMsg: ""
     };
   },
+
+  computed: {
+    ...mapState(["posts"])
+  },
+
   methods: {
+    savePost() {
+      const post = {
+        id: "1",
+        msg: this.postMsg
+      };
+
+      this.$store.commit("addPost", post);
+    },
+
     toggleMobileButton() {
       this.inTextArea = screen.width > 768;
     },
+
     showMobileButton() {
       if (screen.width <= 768) {
         return (this.inTextArea = true);
       }
     },
+
     hideMobileButton() {
       if (screen.width <= 768) {
         return (this.inTextArea = false);

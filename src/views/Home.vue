@@ -17,6 +17,14 @@ import TheHeader from "@/components/TheHeader.vue";
 
 export default {
   name: "home",
+  data() {
+    return {
+      post: {
+        id: 2,
+        value: "asd"
+      }
+    };
+  },
   components: {
     TheHeader,
     MnPublishPost,
