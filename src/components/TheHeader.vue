@@ -42,6 +42,7 @@ export default Vue.extend({
 
 .nav {
   background-color: $white;
+  border-bottom: 1px solid $gray-03;
   width: 100%;
   height: 50px;
   display: grid;
@@ -65,11 +66,11 @@ export default Vue.extend({
 }
 
 .nav__user--mobile,
-.nav__menu--mobile{
+.nav__menu--mobile {
   display: none;
 }
 
-@media (max-width: 425px) {
+@media (max-width: 768px) {
   .nav__user--desktop {
     display: none;
   }
