@@ -1,18 +1,38 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div>
+    <the-header></the-header>
+    <section>
+      <mn-publish-post></mn-publish-post>
+    </section>
+    <section>
+      <mn-post></mn-post>
+    </section>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import MnPost from "@/components/MnPost.vue";
+import MnPublishPost from "@/components/MnPublishPost";
+import TheHeader from "@/components/TheHeader.vue";
 
 export default {
   name: "home",
+  data() {
+    return {};
+  },
   components: {
-    HelloWorld
+    TheHeader,
+    MnPublishPost,
+    MnPost
   }
 };
 </script>
+
+<style lang="scss">
+@import "src/assets/scss/variables";
+
+body {
+  background-color: $gray-02;
+  margin: 0;
+}
+</style>
