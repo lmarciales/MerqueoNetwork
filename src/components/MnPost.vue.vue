@@ -1,6 +1,7 @@
 <template>
   <div v-if="posts">
     <div :key="post.detail.id" class="post" v-for="post in posts">
+      <!--Post Information-->
       <div class="post__user" v-if="post.detail">
         <div class="post__user--image">
           <img alt="user" src="../assets/images/user-placeholder.png" />
@@ -17,10 +18,11 @@
           </div>
         </div>
       </div>
+      <!--Post Counts-->
       <div class="post__counts">
         <div class="post__counts--reacts">
           <div :key="index" v-for="(react, index) in post.reactions">
-            <span>{{ react.user.charAt(0) }}</span>
+            <span>{{ react.user | reactionsBadge }}</span>
           </div>
           <span class="post__counts--reacts-number">{{
             post.reactions.length
@@ -30,6 +32,7 @@
           {{ post.comments.length }} {{ commentsCountTxt }}
         </div>
       </div>
+      <!--Post Comments-->
       <div
         :key="comments.id"
         class="post__comments"
@@ -85,18 +88,24 @@ export default Vue.extend({
 
   data() {
     return {
-      postList: this.$store.state.posts,
+      // View constants
       commentsCountTxt: "comentarios",
-      inTextArea: "",
-      showInput: "",
-      inputValue: "",
       inputPlaceholderTxt: "Escribe un comentario",
       commentBtnTxt: "Comentar",
-      reactTxt: "Reaccionar"
+      reactTxt: "Reaccionar",
+      // List of posts from store
+      postList: this.$store.state.posts,
+      // User logged from store
+      userLogged: this.$store.state.user,
+      // Flags to compare with post id
+      inTextArea: "",
+      showInput: "",
+      inputValue: ""
     };
   },
 
   computed: {
+    // Computed of the post list to sort the list
     posts(): PostModel {
       // eslint-disable-next-line vue/no-side-effects-in-computed-properties
       return this.postList.sort(
@@ -109,9 +118,11 @@ export default Vue.extend({
   },
 
   filters: {
-    timePassed(startTime: Date) {
+    // Filter (pipe) to change the date for the time passed.
+    timePassed(startTime: string) {
       const endTime = new Date();
-      let timeDiff = endTime.getTime() - startTime.getTime();
+      const sTime = Date.parse(startTime);
+      let timeDiff = endTime.getTime() - sTime;
       timeDiff /= 1000;
       const seconds = {
         text: "segundos",
@@ -134,14 +145,23 @@ export default Vue.extend({
         time = hours;
       }
       return `Hace ${time.value} ${time.text}`;
+    },
+
+    // Filter to show initials of the name for the reactions badges.
+    reactionsBadge(name: string): string {
+      return name
+        .split(/\s/)
+        .reduce((response, word) => (response += word.slice(0, 1)), "");
     }
   },
 
   methods: {
+    // Function to add a new reaction to a post.
+    // This check if already reacted to the post.
     reactToPost(postId: string) {
       const react = {
         id: postId,
-        user: "Felipe"
+        user: this.userLogged
       };
       const postIndex = this.postList.findIndex(
         (post: { detail: { id: string } }) => post.detail.id === postId
@@ -156,20 +176,24 @@ export default Vue.extend({
       }
     },
 
+    // Shows the input to put the comment
     showCommentInput(postId: string) {
       this.showInput = postId;
     },
 
+    // Shows the button field to send the comment
     showButton(postId: string) {
       return (this.inTextArea = postId);
     },
 
+    // Hide the button field when lose the focus
     hideButton() {
       setTimeout(() => {
         this.inTextArea = "";
       }, 100);
     },
 
+    // Update the post to add new comment
     sendComment(postId: string) {
       const comment: MessageData = {
         id:
@@ -177,7 +201,7 @@ export default Vue.extend({
           Math.random()
             .toString(36)
             .substr(2, 9),
-        user: "Juan",
+        user: this.$store.state.user,
         message: this.inputValue,
         dateCreated: new Date()
       };
@@ -195,6 +219,13 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import "src/assets/scss/variables";
 
+@mixin flex-center {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/***************Post InfoUser***************/
 .post {
   background-color: $white;
   margin: 30px 10%;
@@ -242,6 +273,7 @@ export default Vue.extend({
   cursor: pointer;
 }
 
+/***************Post Counts***************/
 .post__counts {
   border-bottom: 1px solid $gray-03;
   border-top: 1px solid $gray-03;
@@ -252,15 +284,11 @@ export default Vue.extend({
 }
 
 .post__counts--reacts {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+  @include flex-center;
 }
 
 .post__counts--reacts div {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+  @include flex-center;
   width: 20px;
   height: 20px;
   background-color: $gray-03;
@@ -288,6 +316,7 @@ export default Vue.extend({
   justify-content: end;
 }
 
+/***************Post Comments***************/
 .post__comments {
   display: grid;
   grid-template-columns: 75px auto;

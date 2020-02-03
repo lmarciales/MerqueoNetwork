@@ -12,7 +12,7 @@
       </label>
     </div>
     <div class="publish__post--button" v-if="inTextArea">
-      <button @click="savePost" :disabled="postMsg.length <= 0">
+      <button :disabled="postMsg.length <= 0" @click="savePost">
         {{ publishBtnTxt }}
       </button>
     </div>
@@ -34,8 +34,12 @@ export default Vue.extend({
 
   data() {
     return {
-      inputPlaceholderTxt: "Escribe aquí tu estado",
+      // Mobile max width
+      mobileWidth: 768,
+      // Flag to show button field in mobile.
       inTextArea: true,
+      // View constants
+      inputPlaceholderTxt: "Escribe aquí tu estado",
       publishBtnTxt: "Publicar",
       postMsg: ""
     };
@@ -46,6 +50,7 @@ export default Vue.extend({
   },
 
   methods: {
+    // Save the data in the store to add a new Post.
     savePost() {
       const post: PostModel = {
         detail: {
@@ -54,7 +59,7 @@ export default Vue.extend({
             Math.random()
               .toString(36)
               .substr(2, 9),
-          user: "Juan",
+          user: this.$store.state.user,
           message: this.postMsg,
           dateCreated: new Date()
         },
@@ -67,23 +72,30 @@ export default Vue.extend({
       this.postMsg = "";
     },
 
+    // Clean the post list removing empty objects (happens initializing the state)
     cleanPostList() {
       this.$store.commit("clearEmptyPosts");
     },
 
+    // Toggle the view of the button row.
+    // When is mobile, doesnt show the field.
     toggleMobileButton() {
-      this.inTextArea = screen.width > 768;
+      this.inTextArea = screen.width > this.mobileWidth;
     },
 
+    // Since mobile doesn't show the box, it will appear only when input is focused.
     showMobileButton() {
-      if (screen.width <= 768) {
+      if (screen.width <= this.mobileWidth) {
         return (this.inTextArea = true);
       }
     },
 
+    // Hide the box when lose the focus.
     hideMobileButton() {
-      if (screen.width <= 768) {
-        return (this.inTextArea = false);
+      if (screen.width <= this.mobileWidth) {
+        setTimeout(() => {
+          this.inTextArea = false;
+        }, 100);
       }
     }
   }
