@@ -5,7 +5,9 @@
         <span>{{ pageTitle }}</span>
       </div>
       <div class="nav__user">
-        <span class="nav__user--desktop">{{ greetUser }}</span>
+        <span class="nav__user--desktop"
+          >{{ greetUser }} {{ userLogged | pickFirstName }}</span
+        >
         <div @click="showMobileMenu" class="nav__user--mobile">
           <em class="fas fa-bars"></em>
         </div>
@@ -24,12 +26,25 @@ export default Vue.extend({
   name: "TheHeader",
   data() {
     return {
+      // View constants
       pageTitle: "Domicilios Test",
-      greetUser: "Hola! Juan",
+      greetUser: "Hola!",
+      // User from store
+      userLogged: this.$store.state.user,
+      // Flag for mobile menu
       mobileMenu: false
     };
   },
+
+  filters: {
+    // Filter to pick the first name of the user
+    pickFirstName(name: string): string {
+      return name.replace(/ .*/, "");
+    }
+  },
+
   methods: {
+    // Switch the view nav menu, when the resolution width change.
     showMobileMenu() {
       this.mobileMenu = !this.mobileMenu;
     }
